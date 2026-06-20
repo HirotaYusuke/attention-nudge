@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attention Nudge 設定</title>
+    <link rel="stylesheet" href="ui.css" />
+  </head>
+  <body>
+    <main class="panel options">
+      <h1>Attention Nudge 設定</h1>
+      <form id="settingsForm">
+        <label class="field checkbox">
+          <input id="enabled" type="checkbox" />
+          有効にする
+        </label>
+        <label class="field">
+          介入の強さ
+          <select id="interventionStrength">
+            <option value="low">弱い</option>
+            <option value="medium">標準</option>
+            <option value="high">強い</option>
+          </select>
+        </label>
+        <label class="field">
+          通常ページの無操作しきい値（秒）
+          <input id="passiveThresholdSeconds" type="number" min="15" max="3600" step="5" />
+        </label>
+        <label class="field">
+          介入クールダウン（分）
+          <input id="cooldownMinutes" type="number" min="1" max="60" step="1" />
+        </label>
+        <label class="field">
+          除外サイト（1行に1つのホスト名）
+          <textarea id="disabledSites" rows="6" spellcheck="false"></textarea>
+        </label>
+        <button type="submit">保存</button>
+        <p id="status" role="status"></p>
+      </form>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>

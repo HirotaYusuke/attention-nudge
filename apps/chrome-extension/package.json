@@ -1,0 +1,15 @@
+{
+  "name": "@attention-nudge/chrome-extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@attention-nudge/core": "file:../../packages/core"
+  },
+  "devDependencies": {}
+}
