@@ -4,17 +4,26 @@ chrome.runtime.onInstalled.addListener(async () => {
   await chrome.runtime.openOptionsPage();
 });
 
+// incrementDailyStats は read-modify-write なので、同時に届いた統計メッセージを
+// 並行実行すると加算が失われる。キューで直列化する。
+let statsWriteQueue: Promise<unknown> = Promise.resolve();
+
 chrome.runtime.onMessage.addListener((message: unknown, _sender, sendResponse) => {
   if (!isStatsMessage(message)) {
     return false;
   }
 
-  incrementDailyStats({
-    interventionCount: message.intervention ? 1 : 0,
-    awayReturnCount: message.awayReturn ? 1 : 0
-  })
-    .then((stats) => sendResponse({ ok: true, stats }))
-    .catch((error: unknown) => sendResponse({ ok: false, error: String(error) }));
+  statsWriteQueue = statsWriteQueue
+    .then(() =>
+      incrementDailyStats({
+        interventionCount: message.intervention ? 1 : 0,
+        awayReturnCount: message.awayReturn ? 1 : 0
+      })
+    )
+    .then(
+      (stats) => sendResponse({ ok: true, stats }),
+      (error: unknown) => sendResponse({ ok: false, error: String(error) })
+    );
 
   return true;
 });
