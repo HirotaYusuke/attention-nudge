@@ -19,8 +19,11 @@ The current prototype intentionally avoids messages like "Please focus" and does
   - keyboard, pointer, and scroll activity
   - video / audio play state
 - Visual intervention only
-  - soft page overlay
-  - subtle focus ring around the viewport
+  - a background-independent contrast ring around the viewport
+    (light + dark layered stroke with a soft glow, so it stays visible on
+    light, dark, colorful pages and under dark-mode extensions)
+  - a gentle pulse animation, disabled automatically when the user prefers
+    reduced motion
 - Lightweight settings UI
   - enable / disable
   - intervention strength

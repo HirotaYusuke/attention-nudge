@@ -1,23 +1,33 @@
 import type { InterventionRequest, InterventionStrength } from "@attention-nudge/core";
 
 const ROOT_ID = "attention-nudge-root";
+const RING_CLASS = "attention-nudge-ring";
+const ACTIVE_CLASS = "attention-nudge-active";
+
+// 表示継続時間。脈動アニメは 900ms × 3 回 = 2,700ms なので、
+// それを覆う長さにしてからフェードアウトさせる。
+const VISIBLE_MS = 2_800;
 
 export function showVisualIntervention(request: InterventionRequest): void {
   const root = ensureRoot();
-  const { overlayOpacity, ringOpacity } = getStrengthValues(request.strength);
+  const { ringOpacity, glow, glowBlur, glowSpread } = getStrengthValues(request.strength);
 
-  root.style.setProperty("--attention-nudge-overlay-opacity", String(overlayOpacity));
   root.style.setProperty("--attention-nudge-ring-opacity", String(ringOpacity));
+  root.style.setProperty("--attention-nudge-glow", glow);
+  root.style.setProperty("--attention-nudge-glow-blur", `${glowBlur}px`);
+  root.style.setProperty("--attention-nudge-glow-spread", `${glowSpread}px`);
   root.dataset.reason = request.reason;
-  root.classList.remove("attention-nudge-active");
+
+  // クラスを一度外し、次フレームで付け直すことでアニメーションを毎回リスタートさせる。
+  root.classList.remove(ACTIVE_CLASS);
 
   window.requestAnimationFrame(() => {
-    root.classList.add("attention-nudge-active");
+    root.classList.add(ACTIVE_CLASS);
   });
 
   window.setTimeout(() => {
-    root.classList.remove("attention-nudge-active");
-  }, 2_800);
+    root.classList.remove(ACTIVE_CLASS);
+  }, VISIBLE_MS);
 }
 
 export function showManualTestIntervention(): void {
@@ -38,36 +48,60 @@ function ensureRoot(): HTMLElement {
   root.id = ROOT_ID;
   root.setAttribute("aria-hidden", "true");
 
+  const ring = document.createElement("div");
+  ring.className = RING_CLASS;
+  root.append(ring);
+
   const style = document.createElement("style");
   style.textContent = `
     #${ROOT_ID} {
-      --attention-nudge-overlay-opacity: 0.08;
-      --attention-nudge-ring-opacity: 0.5;
+      --attention-nudge-ring-opacity: 0.9;
+      --attention-nudge-glow: rgba(120, 180, 255, 0.5);
+      --attention-nudge-glow-blur: 30px;
+      --attention-nudge-glow-spread: 5px;
       pointer-events: none;
       position: fixed;
       inset: 0;
       z-index: 2147483647;
       opacity: 0;
-      transition: opacity 800ms ease;
+      transition: opacity 400ms ease;
     }
 
-    #${ROOT_ID}::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, var(--attention-nudge-overlay-opacity));
-    }
-
-    #${ROOT_ID}::after {
-      content: "";
-      position: absolute;
-      inset: 10px;
-      border: 2px solid rgba(77, 139, 255, var(--attention-nudge-ring-opacity));
-      box-shadow: 0 0 24px rgba(77, 139, 255, 0.18);
-    }
-
-    #${ROOT_ID}.attention-nudge-active {
+    #${ROOT_ID}.${ACTIVE_CLASS} {
       opacity: 1;
+    }
+
+    /*
+     * 背景の明暗に依存させないため、暗転オーバーレイは使わない。
+     * リングを「白い線 + その内外を挟む黒い線 + 青いグロー」の多層で描くことで、
+     * 明るい / 暗い / カラフルな背景やダークモード拡張下でも視認できるようにする。
+     */
+    #${ROOT_ID} .${RING_CLASS} {
+      position: absolute;
+      inset: 14px;
+      border-radius: 10px;
+      border: 2px solid rgba(255, 255, 255, var(--attention-nudge-ring-opacity));
+      box-shadow:
+        0 0 0 2px rgba(0, 0, 0, 0.55),
+        inset 0 0 0 2px rgba(0, 0, 0, 0.55),
+        0 0 var(--attention-nudge-glow-blur) var(--attention-nudge-glow-spread) var(--attention-nudge-glow),
+        inset 0 0 40px 4px var(--attention-nudge-glow);
+    }
+
+    #${ROOT_ID}.${ACTIVE_CLASS} .${RING_CLASS} {
+      animation: attention-nudge-pulse 900ms ease-in-out 3;
+    }
+
+    @keyframes attention-nudge-pulse {
+      0%, 100% { transform: scale(1); opacity: 0.85; }
+      50% { transform: scale(0.987); opacity: 1; }
+    }
+
+    /* 動きに敏感なユーザー向け: 脈動をやめ、静止したリングを表示するだけにする。 */
+    @media (prefers-reduced-motion: reduce) {
+      #${ROOT_ID}.${ACTIVE_CLASS} .${RING_CLASS} {
+        animation: none;
+      }
     }
   `;
 
@@ -75,13 +109,18 @@ function ensureRoot(): HTMLElement {
   return root;
 }
 
-function getStrengthValues(strength: InterventionStrength): { overlayOpacity: number; ringOpacity: number } {
+function getStrengthValues(strength: InterventionStrength): {
+  ringOpacity: number;
+  glow: string;
+  glowBlur: number;
+  glowSpread: number;
+} {
   switch (strength) {
     case "low":
-      return { overlayOpacity: 0.15, ringOpacity: 0.35 };
+      return { ringOpacity: 0.75, glow: "rgba(120, 180, 255, 0.35)", glowBlur: 20, glowSpread: 3 };
     case "high":
-      return { overlayOpacity: 0.45, ringOpacity: 0.75 };
+      return { ringOpacity: 0.98, glow: "rgba(120, 180, 255, 0.7)", glowBlur: 42, glowSpread: 8 };
     case "medium":
-      return { overlayOpacity: 0.28, ringOpacity: 0.5 };
+      return { ringOpacity: 0.9, glow: "rgba(120, 180, 255, 0.5)", glowBlur: 30, glowSpread: 5 };
   }
 }
