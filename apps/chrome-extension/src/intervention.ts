@@ -55,8 +55,7 @@ function ensureRoot(): HTMLElement {
       content: "";
       position: absolute;
       inset: 0;
-      background: rgba(255, 255, 255, var(--attention-nudge-overlay-opacity));
-      mix-blend-mode: screen;
+      background: rgba(0, 0, 0, var(--attention-nudge-overlay-opacity));
     }
 
     #${ROOT_ID}::after {
@@ -70,12 +69,6 @@ function ensureRoot(): HTMLElement {
     #${ROOT_ID}.attention-nudge-active {
       opacity: 1;
     }
-
-    @media (prefers-color-scheme: dark) {
-      #${ROOT_ID}::before {
-        background: rgba(255, 255, 255, calc(var(--attention-nudge-overlay-opacity) * 0.7));
-      }
-    }
   `;
 
   document.documentElement.append(style, root);
@@ -85,10 +78,10 @@ function ensureRoot(): HTMLElement {
 function getStrengthValues(strength: InterventionStrength): { overlayOpacity: number; ringOpacity: number } {
   switch (strength) {
     case "low":
-      return { overlayOpacity: 0.04, ringOpacity: 0.35 };
+      return { overlayOpacity: 0.15, ringOpacity: 0.35 };
     case "high":
-      return { overlayOpacity: 0.14, ringOpacity: 0.75 };
+      return { overlayOpacity: 0.45, ringOpacity: 0.75 };
     case "medium":
-      return { overlayOpacity: 0.08, ringOpacity: 0.5 };
+      return { overlayOpacity: 0.28, ringOpacity: 0.5 };
   }
 }
