@@ -117,10 +117,10 @@ function getStrengthValues(strength: InterventionStrength): {
 } {
   switch (strength) {
     case "low":
-      return { ringOpacity: 0.75, glow: "rgba(120, 180, 255, 0.35)", glowBlur: 20, glowSpread: 3 };
+      return { ringOpacity: 0.85, glow: "rgba(120, 180, 255, 0.5)", glowBlur: 26, glowSpread: 5 };
     case "high":
-      return { ringOpacity: 0.98, glow: "rgba(120, 180, 255, 0.7)", glowBlur: 42, glowSpread: 8 };
+      return { ringOpacity: 1, glow: "rgba(120, 180, 255, 0.95)", glowBlur: 46, glowSpread: 12 };
     case "medium":
-      return { ringOpacity: 0.9, glow: "rgba(120, 180, 255, 0.5)", glowBlur: 30, glowSpread: 5 };
+      return { ringOpacity: 0.92, glow: "rgba(120, 180, 255, 0.72)", glowBlur: 34, glowSpread: 8 };
   }
 }
